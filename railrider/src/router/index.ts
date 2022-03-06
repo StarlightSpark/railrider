@@ -6,7 +6,15 @@ Vue.use(VueRouter)
   const routes: Array<RouteConfig> = [
   {
     path: '/',
-    redirect: () => "/dashboard"
+    redirect: () => "/dashboard",
+  },
+  {
+    path: "/train-finder",
+    name: 'TrainFinder',
+    meta: {
+      icon: "mdi-map-marker-radius"
+    },
+    component: () => import(/* webpackChunkName: "trainFinder" */ '../views/TrainFinder.vue')
   },
   {
     path: "/dashboard",
@@ -33,13 +41,21 @@ Vue.use(VueRouter)
     component: () => import(/* webpackChunkName: "scanner" */ '../views/Scanner.vue')
   },
   {
+    path: '/raw',
+    name: 'RawData',
+    meta: {
+      icon: "mdi-code-braces"
+    },
+    component: () => import(/* webpackChunkName: "rawData" */ '../views/RawData.vue')
+  },
+  {
     path: '/settings',
     name: 'Settings',
     meta: {
       icon: "mdi-cog"
     },
     component: () => import(/* webpackChunkName: "settings" */ '../views/Settings.vue')
-  }
+  },
 ]
 
 const router = new VueRouter({

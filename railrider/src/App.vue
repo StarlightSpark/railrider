@@ -1,5 +1,5 @@
 <template>
-  <v-app id="app">
+  <v-app id="app" dark>
     <v-navigation-drawer mini-variant permanent app>
       <v-avatar>
         <v-icon>mdi-train</v-icon>
@@ -26,22 +26,13 @@
       <v-container fluid>
         <router-view/>
       </v-container>
-      <!-- <v-bottom-navigation color="primary">
-      <v-btn
-        v-for="route in routes"
-        :key="route.path"
-        :to="route.path"
-      >
-        <span>{{ route.name }}</span>
-        <v-icon>{{ route.meta.icon }}</v-icon>
-      </v-btn>
-    </v-bottom-navigation> -->
     </v-main>
   </v-app>
 </template>
 
 <script lang="ts">
 import router from "./router";
+
 export default ({
   name: "App",
   computed: {
@@ -60,5 +51,10 @@ export default ({
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+}
+
+.v-card__title {
+  display: block !important;
+  padding: 8px !important;
 }
 </style>
