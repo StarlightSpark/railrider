@@ -1,9 +1,9 @@
 <template>
   <v-container>
     <v-row>
-      <!-- <v-col cols="6">
+      <v-col cols="6">
         <rail-map />
-      </v-col> -->
+      </v-col>
       <v-col cols="6">
         <speedometer :speed="45" />
       </v-col>

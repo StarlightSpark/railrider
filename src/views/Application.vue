@@ -1,6 +1,6 @@
 <template>
-  <v-app id="app" dark>
-    <v-navigation-drawer mini-variant permanent app>
+  <div id="application">
+    <v-navigation-drawer v-if="$route.path !== '/'" mini-variant permanent app>
       <v-avatar>
         <v-icon>mdi-train</v-icon>
       </v-avatar>
@@ -27,34 +27,19 @@
         <router-view/>
       </v-container>
     </v-main>
-  </v-app>
+  </div>
 </template>
 
 <script lang="ts">
-import router from "./router";
+import Vue from "vue";
+import router from "../router";
 
-export default ({
-  name: "App",
+export default Vue.extend({
+  name: "Application",
   computed: {
     routes() {
-      return router.getRoutes().filter(route => !!route.path);
+      return router.getRoutes().filter(route => !!route.name);
     }
   }
 })
 </script>
-
-
-<style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
-
-.v-card__title {
-  display: block !important;
-  padding: 8px !important;
-}
-</style>
