@@ -1,5 +1,10 @@
 import axios from "axios";
 
+// load Google Maps library the ghetto Google way
+const gmapsScript = document.createElement("script");
+gmapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.VUE_APP_GMAPS_API_KEY}&libraries=places`;
+document.head.appendChild(gmapsScript);
+
 export async function getLocality(coords: GeolocationCoordinates): Promise<string> {
   const params = new URLSearchParams({
     latlng: `${coords.latitude},${coords.longitude}`,
@@ -18,36 +23,32 @@ export async function getLocality(coords: GeolocationCoordinates): Promise<strin
   return `${locality}, ${state}`;
 }
 
-export async function getAutocompleteDestinationResults(input: string, around: GeolocationCoordinates) {
-  console.log("searching for input", input);
-  const params: google.maps.places.AutocompletionRequest = {
-    input,
-    location: new google.maps.LatLng(around.latitude, around.longitude),
-    componentRestrictions: {
-      country: "us"
-    },
-    types: ["(cities)"],
-  };
+export function getAutocompleteDestinationResults(input: string, around: GeolocationCoordinates): Promise<string[]> {
+  return new Promise((resolve, reject) => {
+    const params: google.maps.places.AutocompletionRequest = {
+      input,
+      location: new google.maps.LatLng(around.latitude, around.longitude),
+      radius: 400e+3,
+      componentRestrictions: {
+        country: "us"
+      },
+      types: ["(cities)"],
+    };
+  
+    const handleResult = function (
+      predictions: google.maps.places.QueryAutocompletePrediction[] | null,
+      status: google.maps.places.PlacesServiceStatus
+    ) {
+      if (status != google.maps.places.PlacesServiceStatus.OK || !predictions) {
+        reject(status);
+      }
 
-  // const autocomplete = new google.maps.places.AutocompleteService();
-
-  // autocomplete.getPlacePredictions(params, (prediction, status) => {
-  //   console.log("prediction", prediction);
-  //   console.log("status", status);
-  // });
-
-  // const params = new URLSearchParams({
-  //   input,
-  //   components: "country:us",
-  //   location: `${around.latitude},${around.longitude}`,
-  //   radius: "1000",
-  //   key: process.env.VUE_APP_GMAPS_API_KEY ?? "",
-  //   "types": "cities"
-  // });
-
-  // const results = await axios.get("https://maps.googleapis.com/maps/api/place/autocomplete/json?" + params.toString());
-  // return results;
-
-
-
+      if (predictions)
+        resolve(predictions.map(({ terms }) => `${terms[0].value}, ${terms[1].value}`));
+    };
+  
+    const autocomplete = new google.maps.places.AutocompleteService();
+    autocomplete.getPlacePredictions(params, handleResult)
+      .catch((e) => reject(e));
+  });
 }

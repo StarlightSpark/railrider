@@ -9,20 +9,24 @@
 
         <div>
           <v-autocomplete
-            :loading="loadingCurrentLocation"
+            no-data-text="No Cities Found"
+            clearable
+            :loading="isLoadingCurrentLocation"
             v-model="from"
             outlined
             label="From"
             auto-select-first
-            :items="railCities"
+            :items="autocompleteOptions"
           />
           <v-autocomplete
+            no-data-text="No Cities Found"
+            clearable
             ref="to"
             v-model="to"
             outlined
             label="To"
             auto-select-first
-            :items="railCities"
+            :items="autocompleteOptions"
             @update:search-input="updateAutocompleteSuggestions"
           />
           <v-btn color="primary">Ride</v-btn>
@@ -41,46 +45,54 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import { getLocality, getAutocompleteDestinationResults } from "../services/GoogleMaps";
-import { mapMutations, mapState } from "vuex";
+import Component from 'vue-class-component'
 
-export default Vue.extend({
-  name: "Home",
-  data: () => ({
-    loadingCurrentLocation: true,
-    from: "",
-    to: "",
-    railCities: [
-      "Pueblo, CO",
-      "Denver, CO",
-      "Grand Junction, CO",
-      "Glenwood Springs, CO",
-      "Limon, CO",
-      "Lonngmont, CO",
-      "Broomfield, CO",
-      "Fort Collins, CO",
-      "Loveland, CO"
-    ]
-  }),
-  computed: {
-    ...mapState("position", ["currentPosition"])
-  },
-  methods: {
-    ...mapMutations("position", ["setCurrentPosition"]),
-    updateAutocompleteSuggestions(input: string) {
-      this.currentPosition && getAutocompleteDestinationResults(input, this.currentPosition.coords)
-        .then(console.log);
+import { getLocality, getAutocompleteDestinationResults } from "../services/GoogleMaps";
+
+@Component
+export default class Home extends Vue {
+  currentCity: string | null = null
+  isLoadingCurrentLocation = true
+  from: string | null = null
+  to: string | null = null
+  googlePlaceSuggestions: string[] = []
+
+  get autocompleteOptions(): string[] {
+    return this.currentCity
+    ? [...this.googlePlaceSuggestions, this.currentCity]
+    : this.googlePlaceSuggestions
+  }
+
+  get currentPosition(): GeolocationPosition {
+    return this.$store.state.position.currentPosition;
+  }
+
+  updateAutocompleteSuggestions(input: string): void {
+    if (!this.currentPosition) return;
+
+    if (input) {
+      getAutocompleteDestinationResults(input, this.currentPosition.coords)
+        .then((locations) => {
+          this.googlePlaceSuggestions = locations;
+        })
+        .catch(() => {
+          console.debug("no locations found for " + input);
+        });
+    } else {
+      this.googlePlaceSuggestions = [];
     }
-  },
+  }
+
   created() {
     navigator.geolocation.getCurrentPosition((position: GeolocationPosition) => {
-      this.setCurrentPosition(position);
+      this.$store.commit("position/setCurrentPosition", position);
       getLocality(position.coords).then((locality: string) => {
+        this.currentCity = locality;
         this.from = locality;
-      }).finally(() => { this.loadingCurrentLocation = false; })
+      }).finally(() => { this.isLoadingCurrentLocation = false; })
     });
   }
-})
+}
 </script>
 
 <style scoped>
