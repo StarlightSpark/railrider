@@ -29,7 +29,7 @@
             :items="autocompleteOptions"
             @update:search-input="updateAutocompleteSuggestions"
           />
-          <v-btn color="primary">Ride</v-btn>
+          <v-btn color="primary" @click="$router.push('/routes')">Ride</v-btn>
         </div>
 
         <v-divider class="my-12"/>
@@ -53,8 +53,6 @@ import { getLocality, getAutocompleteDestinationResults } from "../services/Goog
 export default class Home extends Vue {
   currentCity: string | null = null
   isLoadingCurrentLocation = true
-  from: string | null = null
-  to: string | null = null
   googlePlaceSuggestions: string[] = []
 
   get autocompleteOptions(): string[] {
@@ -66,6 +64,12 @@ export default class Home extends Vue {
   get currentPosition(): GeolocationPosition {
     return this.$store.state.position.currentPosition;
   }
+
+  get from() { return this.$store.state.trip.from; }
+  set from(name) { this.$store.commit("trip/setFrom", name); }
+
+  get to() { return this.$store.state.trip.to; }
+  set to(name) { this.$store.commit("trip/setTo", name); }
 
   updateAutocompleteSuggestions(input: string): void {
     if (!this.currentPosition) return;

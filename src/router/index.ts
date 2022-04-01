@@ -17,6 +17,11 @@ Vue.use(VueRouter)
     component: () => import(/* webpackChunkName: "home" */ '../views/Home.vue')
   },
   {
+    path: "/routes",
+    name: "Routes",
+    component: () => import(/* webpackChunkName: "home" */ '../views/Routes.vue')
+  },
+  {
     path: "/app",
     component: () => import(/* webpackChunkName: "application" */ '../views/Application.vue'),
     children: [

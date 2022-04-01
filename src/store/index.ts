@@ -26,6 +26,21 @@ export default new Vuex.Store({
         }
       }
     },
+    trip: {
+      namespaced: true,
+      state: () => ({
+        from: null,
+        to: null,
+      }),
+      mutations: {
+        setFrom(state, name) {
+          state.from = name;
+        },
+        setTo(state, name) {
+          state.to = name;
+        }
+      }
+    },
     train: {
       namespaced: true,
       state: () => ({
