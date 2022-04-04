@@ -1,16 +1,24 @@
 <template>
-  <div class="container">
+  <div class="container pa-0">
     <div id="map" />
-    <v-card flat tile>
+    <v-card flat tile class="overview">
       <v-card-text class="text-center">
-        <v-card-title>Proposed Route</v-card-title>
+        <div class="text-subtitle-1 font-weight-bold">{{ from.name }} to {{ to.name }} | {{ totalDistance | m2mi }}</div>
+        <v-divider class="my-2" />
+        <route-overview class="steps" v-if="instructions" :instructions="instructions" />
+        <v-skeleton-loader v-else type="list-item-avatar@7" />
       </v-card-text>
+      <v-card-actions>
+        <v-btn text to="/"><v-icon left>mdi-chevron-left</v-icon>Back</v-btn>
+        <v-spacer />
+        <v-btn color="primary" to="/app/dashboard">Let's Fucking Go</v-btn>
+      </v-card-actions>
     </v-card>
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
+import Vue from 'vue';
 import Component from "vue-class-component";
 import Map from "ol/Map";
 import View from "ol/View";
@@ -22,14 +30,39 @@ import { useGeographic } from "ol/proj";
 import { defaults } from "ol/control";
 import GeoJSON from "ol/format/GeoJSON";
 import { Style, Stroke } from "ol/style";
+import { getRoutes } from "../services/RailRouting";
+import { getCoordiniatesForPlace } from '@/services/GoogleMaps';
+import RouteOverview from "@/components/RouteOverview.vue";
 
 useGeographic();
 
-@Component
+@Component({
+  components: {
+    RouteOverview
+  }
+})
 export default class Routes extends Vue {
-  map: Map | null = null
+  map: Map | null = null;
+  routeLayer = new VectorLayer({
+    style: new Style({
+      stroke: new Stroke({
+        color: "#5188F5",
+        width: 5
+      })
+    }),
+    source: new VectorSource({
+      format: new GeoJSON()
+    })
+  });
+  instructions: any[] | null = null;
+  totalDistance: number | null = null;
 
   mounted() {
+    this.loadMap();
+    this.showRoutes();
+  }
+
+  loadMap() {
     this.map = new Map({
       controls: defaults({
         attribution: false,
@@ -42,18 +75,7 @@ export default class Routes extends Vue {
             tileSize: 512,
             crossOrigin: 'anonymous'
           }) }),
-          new VectorLayer({
-            style: new Style({
-              stroke: new Stroke({
-                color: "#5188F5",
-                width: 5
-              })
-            }),
-            source: new VectorSource({
-              format: new GeoJSON(),
-              url: "/sample-route.json"
-            })
-          })
+          this.routeLayer
         ],
         view: new View({
           center: [-105.119096, 39.944109],
@@ -61,12 +83,28 @@ export default class Routes extends Vue {
         }),
         target: 'map'
     });
+  }
 
-    this.map?.getView().fit([-105.124598, 39.489404, -104.989432, 39.941139], { padding: [20, 20, 20, 20] });
+  async showRoutes() {
+    const { latitude: fromLat, longitude: fromLon } = this.currentPosition.coords;
+    const toCoords = await getCoordiniatesForPlace(this.to.id);
+
+    getRoutes([fromLat, fromLon], toCoords)
+      .then(paths => {
+        const firstRoute = paths[0];
+        this.routeLayer.getSource()?.addFeatures(new GeoJSON().readFeatures(firstRoute.points));
+        this.map?.getView().fit(firstRoute.bbox, { padding: [50, 50, 50, 50] });
+        this.instructions = firstRoute.instructions;
+        this.totalDistance = firstRoute.distance;
+      });
   }
 
   get from() { return this.$store.state.trip.from; }
   get to() { return this.$store.state.trip.to; }
+
+  get currentPosition(): GeolocationPosition {
+    return this.$store.state.position.currentPosition;
+  }
 }
 </script>
 
@@ -82,5 +120,14 @@ export default class Routes extends Vue {
 
 .page-title {
   text-align: center;
+}
+
+.overview {
+  flex-grow: 1;
+}
+
+.steps {
+  height: 340px;
+  overflow: scroll;
 }
 </style>

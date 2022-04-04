@@ -19,9 +19,4 @@ export default ({
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
 }
-
-.v-card__title {
-  display: block !important;
-  padding: 8px !important;
-}
 </style>

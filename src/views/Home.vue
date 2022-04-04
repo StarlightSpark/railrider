@@ -9,7 +9,9 @@
 
         <div>
           <v-autocomplete
+            return-object
             no-data-text="No Cities Found"
+            item-text="name"
             clearable
             :loading="isLoadingCurrentLocation"
             v-model="from"
@@ -19,7 +21,9 @@
             :items="autocompleteOptions"
           />
           <v-autocomplete
+            return-object
             no-data-text="No Cities Found"
+            item-text="name"
             clearable
             ref="to"
             v-model="to"
@@ -47,17 +51,17 @@
 import Vue from 'vue'
 import Component from 'vue-class-component'
 
-import { getLocality, getAutocompleteDestinationResults } from "../services/GoogleMaps";
+import { getLocality, getAutocompleteDestinationResults, CityWithID } from "../services/GoogleMaps";
 
 @Component
 export default class Home extends Vue {
   currentCity: string | null = null
   isLoadingCurrentLocation = true
-  googlePlaceSuggestions: string[] = []
+  googlePlaceSuggestions: CityWithID[] = []
 
-  get autocompleteOptions(): string[] {
+  get autocompleteOptions(): CityWithID[] {
     return this.currentCity
-    ? [...this.googlePlaceSuggestions, this.currentCity]
+    ? [...this.googlePlaceSuggestions, {name: this.currentCity, id: "0"}]
     : this.googlePlaceSuggestions
   }
 
@@ -92,7 +96,7 @@ export default class Home extends Vue {
       this.$store.commit("position/setCurrentPosition", position);
       getLocality(position.coords).then((locality: string) => {
         this.currentCity = locality;
-        this.from = locality;
+        this.from = { name: locality, id: "0" };
       }).finally(() => { this.isLoadingCurrentLocation = false; })
     });
   }
