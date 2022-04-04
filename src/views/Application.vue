@@ -1,6 +1,6 @@
 <template>
   <div id="application">
-    <v-navigation-drawer v-if="$route.path !== '/'" mini-variant permanent app>
+    <v-navigation-drawer v-if="$route.path !== '/'" mini-variant permanent app class="text-center">
       <v-avatar>
         <v-icon>mdi-train</v-icon>
       </v-avatar>

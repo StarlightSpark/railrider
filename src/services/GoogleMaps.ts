@@ -1,9 +1,15 @@
 import axios from "axios";
+import { Coordinate } from "ol/coordinate";
 
 // load Google Maps library the ghetto Google way
 const gmapsScript = document.createElement("script");
 gmapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.VUE_APP_GMAPS_API_KEY}&libraries=places`;
 document.head.appendChild(gmapsScript);
+
+export interface CityWithID {
+  name: string;
+  id?: string;
+}
 
 export async function getLocality(coords: GeolocationCoordinates): Promise<string> {
   const params = new URLSearchParams({
@@ -23,7 +29,7 @@ export async function getLocality(coords: GeolocationCoordinates): Promise<strin
   return `${locality}, ${state}`;
 }
 
-export function getAutocompleteDestinationResults(input: string, around: GeolocationCoordinates): Promise<string[]> {
+export function getAutocompleteDestinationResults(input: string, around: GeolocationCoordinates): Promise<CityWithID[]> {
   return new Promise((resolve, reject) => {
     const params: google.maps.places.AutocompletionRequest = {
       input,
@@ -44,11 +50,25 @@ export function getAutocompleteDestinationResults(input: string, around: Geoloca
       }
 
       if (predictions)
-        resolve(predictions.map(({ terms }) => `${terms[0].value}, ${terms[1].value}`));
+        resolve(predictions.map(({ terms, place_id: id }) => ({
+          name: `${terms[0].value}, ${terms[1].value}`,
+          id
+        })));
     };
   
     const autocomplete = new google.maps.places.AutocompleteService();
     autocomplete.getPlacePredictions(params, handleResult)
       .catch((e) => reject(e));
   });
+}
+
+export async function getCoordiniatesForPlace(placeId: string): Promise<Coordinate> {
+  const params = new URLSearchParams({
+    "place_id": placeId,
+    key: process.env.VUE_APP_GMAPS_API_KEY ?? ""
+  });
+
+  const { data } = await axios.get("https://maps.googleapis.com/maps/api/geocode/json?" + params.toString());
+  const { lat,lng } = data.results[0].geometry.location;
+  return [lat, lng];
 }

@@ -9,7 +9,9 @@
 
         <div>
           <v-autocomplete
+            return-object
             no-data-text="No Cities Found"
+            item-text="name"
             clearable
             :loading="isLoadingCurrentLocation"
             v-model="from"
@@ -19,7 +21,9 @@
             :items="autocompleteOptions"
           />
           <v-autocomplete
+            return-object
             no-data-text="No Cities Found"
+            item-text="name"
             clearable
             ref="to"
             v-model="to"
@@ -29,7 +33,7 @@
             :items="autocompleteOptions"
             @update:search-input="updateAutocompleteSuggestions"
           />
-          <v-btn color="primary">Ride</v-btn>
+          <v-btn color="primary" @click="$router.push('/routes')">Ride</v-btn>
         </div>
 
         <v-divider class="my-12"/>
@@ -47,25 +51,29 @@
 import Vue from 'vue'
 import Component from 'vue-class-component'
 
-import { getLocality, getAutocompleteDestinationResults } from "../services/GoogleMaps";
+import { getLocality, getAutocompleteDestinationResults, CityWithID } from "../services/GoogleMaps";
 
 @Component
 export default class Home extends Vue {
   currentCity: string | null = null
   isLoadingCurrentLocation = true
-  from: string | null = null
-  to: string | null = null
-  googlePlaceSuggestions: string[] = []
+  googlePlaceSuggestions: CityWithID[] = []
 
-  get autocompleteOptions(): string[] {
+  get autocompleteOptions(): CityWithID[] {
     return this.currentCity
-    ? [...this.googlePlaceSuggestions, this.currentCity]
+    ? [...this.googlePlaceSuggestions, {name: this.currentCity, id: "0"}]
     : this.googlePlaceSuggestions
   }
 
   get currentPosition(): GeolocationPosition {
     return this.$store.state.position.currentPosition;
   }
+
+  get from() { return this.$store.state.trip.from; }
+  set from(name) { this.$store.commit("trip/setFrom", name); }
+
+  get to() { return this.$store.state.trip.to; }
+  set to(name) { this.$store.commit("trip/setTo", name); }
 
   updateAutocompleteSuggestions(input: string): void {
     if (!this.currentPosition) return;
@@ -88,7 +96,7 @@ export default class Home extends Vue {
       this.$store.commit("position/setCurrentPosition", position);
       getLocality(position.coords).then((locality: string) => {
         this.currentCity = locality;
-        this.from = locality;
+        this.from = { name: locality, id: "0" };
       }).finally(() => { this.isLoadingCurrentLocation = false; })
     });
   }
