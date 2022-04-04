@@ -7,7 +7,7 @@ import "dotenv/config";
 
 Vue.config.productionTip = false;
 
-Vue.filter("m2mi", (meters: number) => (meters / 1609.344).toFixed(2) + " mi");
+Vue.filter("m2mi", (meters: number, fractionDigits = 2, shortUnits = true) => (meters / 1609.344).toFixed(fractionDigits) + (shortUnits ? " mi" : " miles"));
 
 new Vue({
   vuetify,

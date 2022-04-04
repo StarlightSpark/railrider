@@ -3,7 +3,8 @@
     <div id="map" />
     <v-card elevation="3" tile class="overview">
       <v-card-text class="text-center">
-        <div class="text-subtitle-1 font-weight-bold">{{ from.name }} to {{ to.name }} | {{ totalDistance | m2mi }}</div>
+        <div class="text-subtitle-1 font-weight-bold">{{ from.name }} <v-icon style="vertical-align: sub">mdi-chevron-right</v-icon> {{ to.name }}</div>
+        <div class="text-subtitle-2 font-weight-bold green--text">{{ totalDistance | m2mi(0, false) }}</div>
         <v-divider class="my-2" />
         <route-overview class="steps" v-if="instructions" :instructions="instructions" />
         <v-skeleton-loader v-else type="list-item-avatar@7" />
@@ -127,7 +128,7 @@ export default class Routes extends Vue {
 }
 
 .steps {
-  height: 340px;
+  height: 320px;
   overflow: scroll;
 }
 </style>
