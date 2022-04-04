@@ -1,7 +1,7 @@
 <template>
   <div class="container pa-0">
     <div id="map" />
-    <v-card flat tile class="overview">
+    <v-card elevation="3" tile class="overview">
       <v-card-text class="text-center">
         <div class="text-subtitle-1 font-weight-bold">{{ from.name }} to {{ to.name }} | {{ totalDistance | m2mi }}</div>
         <v-divider class="my-2" />
